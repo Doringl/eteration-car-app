@@ -16,6 +16,7 @@ export interface ICarsState {
   paginatedData: Cars;
   filteredData: Cars;
   isFiltering: boolean;
+  cart: Array<Car & { count?: number }>;
 }
 
 const initialState: ICarsState = {
@@ -26,6 +27,21 @@ const initialState: ICarsState = {
   paginatedData: [],
   filteredData: [],
   isFiltering: false,
+  cart: [],
+};
+
+const sortFunction = (a: Car, b: Car, payload: SortType) => {
+  switch (payload) {
+    case "new-to-old":
+      return moment(b.createdAt).unix() - moment(a.createdAt).unix();
+    case "price-low-to-hight":
+      return Number(a.price) - Number(b.price);
+    case "price-hight-to-low":
+      return Number(b.price) - Number(a.price);
+
+    default:
+      return moment(a.createdAt).unix() - moment(b.createdAt).unix();
+  }
 };
 
 export const fetchCarsPageData = createAsyncThunk<
@@ -92,33 +108,36 @@ export const carsSlice = createSlice({
     },
     sort: (state, action: PayloadAction<SortType>) => {
       state.currentPage = 1;
-      switch (action.payload) {
-        case "new-to-old":
-          state.filteredData = state.pageData.sort(
-            (a, b) => moment(b.createdAt).unix() - moment(a.createdAt).unix()
-          );
-          break;
-        case "price-low-to-hight":
-          state.filteredData = state.pageData.sort(
-            (a, b) => Number(a.price) - Number(b.price)
-          );
-          break;
-        case "price-hight-to-low":
-          state.filteredData = state.pageData.sort(
-            (a, b) => Number(b.price) - Number(a.price)
-          );
-          break;
-
-        default:
-          state.filteredData = state.pageData.sort(
-            (a, b) => moment(a.createdAt).unix() - moment(b.createdAt).unix()
-          );
-          break;
+      if (state.isFiltering) {
+        state.filteredData = state.filteredData.sort((a, b) =>
+          sortFunction(a, b, action.payload)
+        );
+      } else {
+        state.filteredData = state.pageData.sort((a, b) =>
+          sortFunction(a, b, action.payload)
+        );
       }
+
       state.paginatedData = state.filteredData.slice(
         state.currentPage * 12 - 12,
         state.currentPage * 12
       );
+    },
+    addToCart: (state, action: PayloadAction<Car>) => {
+      if (state.cart.length > 0) {
+        if (state.cart.map((item) => item.id).includes(action.payload.id)) {
+          state.cart[
+            state.cart.map((item) => item.id).indexOf(action.payload.id)
+          ].count! += 1;
+          localStorage.setItem("cars", JSON.stringify(state.cart));
+        } else {
+          state.cart.push({ ...action.payload, count: 1 });
+          localStorage.setItem("cars", JSON.stringify(state.cart));
+        }
+      } else {
+        state.cart.push({ ...action.payload, count: 1 });
+        localStorage.setItem("cars", JSON.stringify(state.cart));
+      }
     },
   },
   extraReducers: (builder) => {
@@ -144,6 +163,16 @@ export const carsSlice = createSlice({
       });
   },
 });
+
+export const getTotalPrice = (state: Array<Car & { count?: number }>) => {
+  return state.reduce((acc, value) => {
+    if (value.count && value.count > 1) {
+      return acc + Number(value.price) * value.count;
+    } else {
+      return acc + Number(value.price);
+    }
+  }, 0);
+};
 
 export const carsActions = carsSlice.actions;
 

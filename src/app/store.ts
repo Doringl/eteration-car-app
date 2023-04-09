@@ -2,9 +2,32 @@ import { configureStore } from "@reduxjs/toolkit";
 import carReducer from "../features/cars/carsSlice";
 // ...
 
+const loadFromLocalStorage = () => {
+  try {
+    const serialisedState = localStorage.getItem("cars");
+    if (serialisedState === null) return [];
+    return JSON.parse(serialisedState) as Array<Car & { count: number }>;
+  } catch (e) {
+    console.warn(e);
+    return [];
+  }
+};
+
 export const store = configureStore({
   reducer: {
     cars: carReducer,
+  },
+  preloadedState: {
+    cars: {
+      cart: loadFromLocalStorage(),
+      pageDataStatus: "idle",
+      pageDataError: { message: "", file: "", line: 0 },
+      pageData: [],
+      currentPage: 1,
+      paginatedData: [],
+      filteredData: [],
+      isFiltering: false,
+    },
   },
 });
 

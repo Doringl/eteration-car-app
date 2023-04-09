@@ -1,69 +1,23 @@
 import { AccountCircle, DirectionsCar, ShoppingBag } from "@mui/icons-material";
 import MoreIcon from "@mui/icons-material/MoreVert";
-import SearchIcon from "@mui/icons-material/Search";
 import {
-  alpha,
   AppBar,
   Box,
   IconButton,
-  InputBase,
   Menu,
   MenuItem,
-  styled,
   Toolbar,
   Typography,
 } from "@mui/material";
 import { MouseEvent, useState } from "react";
-import { useAppDispatch } from "../../app/hooks";
-import { carsActions } from "../../features/cars/carsSlice";
-
-const Search = styled("div")(({ theme }) => ({
-  position: "relative",
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
-  "&:hover": {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
-  },
-  marginRight: theme.spacing(2),
-  marginLeft: 0,
-  width: "100%",
-  [theme.breakpoints.up("sm")]: {
-    marginLeft: theme.spacing(3),
-    width: "auto",
-  },
-}));
-
-const SearchIconWrapper = styled("div")(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: "100%",
-  position: "absolute",
-  pointerEvents: "none",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: "inherit",
-  "& .MuiInputBase-input": {
-    padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create("width"),
-    width: "100%",
-    [theme.breakpoints.up("md")]: {
-      width: "20ch",
-    },
-  },
-}));
-
-const cart = ["volvo", "audi"];
+import { useAppSelector } from "../../app/hooks";
+import { getTotalPrice } from "../../features/cars/carsSlice";
+import SearchBox from "../SearchBox/SearchBox";
 
 const Header = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
-  const dispatch = useAppDispatch();
-  const { search } = carsActions;
+  const { cart } = useAppSelector((state) => state.cars);
 
   const handleCartMenuOpen = (event: MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -89,8 +43,8 @@ const Header = () => {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      {cart.map((car) => (
-        <MenuItem key={car}>
+      {cart.map((item) => (
+        <MenuItem key={item.id}>
           <IconButton
             size='large'
             aria-label='cart item'
@@ -100,7 +54,7 @@ const Header = () => {
           >
             <DirectionsCar />
           </IconButton>
-          <p>{car}</p>
+          <p>{`${item.name} ${item.count}`}</p>
         </MenuItem>
       ))}
     </Menu>
@@ -118,16 +72,7 @@ const Header = () => {
           >
             Eteration Car App
           </Typography>
-          <Search>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder='Search…'
-              inputProps={{ "aria-label": "search" }}
-              onChange={(event) => dispatch(search(event.currentTarget.value))}
-            />
-          </Search>
+          <SearchBox />
           <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: { xs: "none", md: "flex" } }}>
             <IconButton
@@ -138,7 +83,7 @@ const Header = () => {
               color='inherit'
             >
               <ShoppingBag />
-              total price
+              {`${getTotalPrice(useAppSelector((state) => state.cars.cart))} ₺`}
             </IconButton>
           </Box>
           <Box sx={{ display: { xs: "none", md: "flex" } }}>
