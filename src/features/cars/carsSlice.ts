@@ -139,6 +139,28 @@ export const carsSlice = createSlice({
         localStorage.setItem("cars", JSON.stringify(state.cart));
       }
     },
+    removeFromCart: (state, action: PayloadAction<Car>) => {
+      if (state.cart.length > 0) {
+        if (state.cart.map((item) => item.id).includes(action.payload.id)) {
+          if (
+            state.cart[
+              state.cart.map((item) => item.id).indexOf(action.payload.id)
+            ].count! === 1
+          ) {
+            state.cart.splice(
+              state.cart.map((item) => item.id).indexOf(action.payload.id),
+              1
+            );
+            localStorage.setItem("cars", JSON.stringify(state.cart));
+          } else {
+            state.cart[
+              state.cart.map((item) => item.id).indexOf(action.payload.id)
+            ].count! -= 1;
+            localStorage.setItem("cars", JSON.stringify(state.cart));
+          }
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder

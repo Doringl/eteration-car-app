@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { MouseEvent, useState } from "react";
+import { useHistory } from "react-router-dom";
 import { useAppSelector } from "../../app/hooks";
 import { getTotalPrice } from "../../features/cars/carsSlice";
 import SearchBox from "../SearchBox/SearchBox";
@@ -18,6 +19,7 @@ const Header = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
   const { cart } = useAppSelector((state) => state.cars);
+  const history = useHistory();
 
   const handleCartMenuOpen = (event: MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -69,6 +71,8 @@ const Header = () => {
             noWrap
             component='div'
             sx={{ display: { xs: "none", sm: "block" } }}
+            onClick={() => history.push("/")}
+            style={{ cursor: "pointer" }}
           >
             Eteration Car App
           </Typography>
